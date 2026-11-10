@@ -1,0 +1,35 @@
+server:
+  port: 8080
+
+# DBMS: PostgreSQL 16 (테이블 명세서 개요). 스키마는 resources/db/schema.sql · data.sql 을 DB에 먼저 적용.
+spring:
+  profiles:
+    default: dev
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/siem}
+    username: ${DB_USERNAME:siem}
+    password: ${DB_PASSWORD:}
+  sql:
+    init:
+      mode: never
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        # 명세서 '시간 기준': TIMESTAMPTZ(UTC) 저장, 화면에서 KST 표시
+        jdbc:
+          time_zone: UTC
+
+detection:
+  # 탐지 엔진 실행 주기(ms) — 신규 정규화 이벤트를 활성 규칙과 비교
+  interval-ms: 10000
+  batch-size: 1000
+
+---
+# 개발용: /api/dev/** (테스트 이벤트 생성 · 탐지 즉시 실행) 활성화. 운영은 prod 프로필로 실행.
+spring:
+  config:
+    activate:
+      on-profile: dev

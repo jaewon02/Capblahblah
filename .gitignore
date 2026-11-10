@@ -1,0 +1,60 @@
+# ─────────────── 백엔드 (Spring Boot · Maven) ───────────────
+backend/target/
+*.class
+hs_err_pid*.log
+replay_pid*.log
+
+# 개인 설정 · 비밀값 (DB 비밀번호 등은 환경변수 DB_PASSWORD 사용)
+backend/src/main/resources/application-local.yml
+backend/src/main/resources/application-local.properties
+.env
+.env.*
+!.env.example
+
+# ─────────────── 프론트 (React · Vite) ───────────────
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ─────────────── 로그 · 임시 파일 ───────────────
+*.log
+logs/
+*.tmp
+*.bak
+
+# ─────────────── 압축 파일 (배포용 묶음은 저장소에 올리지 않음) ───────────────
+*.zip
+
+# ─────────────── 팀 내부 문서 ───────────────
+# 엑셀 3개 + DB 덤프는 저장소에 올리지 않고 팀원끼리 따로 공유한다
+*.xlsx
+*.xls
+db_dump/*
+!db_dump/README.md
+
+# ─────────────── IDE · 에디터 ───────────────
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/*
+!.vscode/extensions.json
+.settings/
+.project
+.classpath
+.factorypath
+
+# Claude Code 개인 설정
+.claude/settings.local.json
+
+# ─────────────── OS ───────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 엑셀 · 워드 파일을 열어 둘 때 생기는 잠금 파일
+~$*
