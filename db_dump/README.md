@@ -9,7 +9,7 @@
 
 - 덤프 원본: PostgreSQL 16.15, `pg_dump --no-owner`, 인코딩 UTF-8
 - 초기 데이터: 로그 유형 4 · 이벤트 유형 9 · system_setting 8 · alert_policy 5 · 탐지 규칙 6 (테스트 데이터 없음)
-- 덤프 파일 없이 DB를 만들려면 `backend/src/main/resources/db` 의 `create-database.sql` → `schema.sql` → `data.sql` 을 순서대로 실행해도 같은 결과입니다.
+- 덤프 파일 없이 DB를 만들려면 `db` 폴더의 `create-database.sql` → `schema.sql` → `data.sql` 을 순서대로 실행해도 같은 결과입니다.
 
 ## 복원 순서 (PostgreSQL 16 설치된 PC)
 

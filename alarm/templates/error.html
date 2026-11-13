@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block head %}
+<header class="page-head">
+  <div>
+    <h1>{{ title }}</h1>
+    <div class="muted sub">왼쪽 메뉴로 다른 화면으로 이동할 수 있습니다.</div>
+  </div>
+</header>
+{% endblock %}
+{% block content %}
+<div class="error" role="alert">{{ message }}</div>
+{% if hint %}<div class="card"><div class="hint">{{ hint }}</div></div>{% endif %}
+{% endblock %}

@@ -1,0 +1,48 @@
+### VS Code REST Client · IntelliJ HTTP Client — 각 요청 위의 Send Request / ▶ 로 실행
+
+### 1) 테스트 이벤트 넣기 (dev 프로필 전용) — SSH 무차별 대입 15건
+POST http://localhost:8080/api/dev/simulate/ssh-bruteforce
+
+### 다른 시나리오: sudo-root | offhours-login | user-created | web-admin-scan
+POST http://localhost:8080/api/dev/simulate/sudo-root
+
+### 2) 탐지 엔진 즉시 실행 (안 해도 10초마다 자동 실행)
+POST http://localhost:8080/api/dev/detect
+
+### 3) 탐지 결과 목록
+GET http://localhost:8080/api/threats
+
+### 4) 경보 목록 · 상태별 건수
+GET http://localhost:8080/api/alerts
+###
+GET http://localhost:8080/api/alerts/summary
+
+### 5) 경보 확인 처리 (미확인 → 확인)
+PATCH http://localhost:8080/api/alerts/1/status
+Content-Type: application/json
+
+{ "status": "ACK" }
+
+### 6) 오탐 지정
+PATCH http://localhost:8080/api/alerts/1/false-positive
+Content-Type: application/json
+
+{ "falsePositive": true, "comment": "정기 점검 작업" }
+
+### 7) 탐지 규칙 등록
+POST http://localhost:8080/api/rules
+Content-Type: application/json
+
+{
+  "name": "SSH 반복 인증 실패 (계정 기준)",
+  "description": "한 계정에 여러 IP에서 로그인 실패",
+  "detectMethod": "THRESHOLD",
+  "logTypeCode": "AUTH",
+  "eventTypeCode": "ssh_auth_failed",
+  "conditions": [],
+  "suppressSec": 600,
+  "groupBy": "USER_ACCOUNT",
+  "timeWindowSec": 600,
+  "thresholdCount": 20,
+  "severity": "HIGH"
+}
