@@ -24,40 +24,41 @@ db/                 DDL · 초기 데이터
 ## 실행 방법
 
 ### 준비물
-- **PostgreSQL 16**
-- **Python 3.12** (3.10 이상)
-- **Node.js 18 이상** (화면 빌드 · 개발 서버)
+| 도구 | 버전 | 용도 |
+|---|---|---|
+| PostgreSQL | 16 | DB |
+| Python | 3.12 (3.10 이상) | 백엔드 (Flask API · 탐지 엔진) |
+| Node.js | 18 이상 | 프론트엔드 (React 빌드 · 개발 서버) |
+
+아래 명령은 모두 **PowerShell**에서 저장소 최상위 폴더 기준입니다.
 
 ### 1. DB 생성 (최초 1회)
-`db` 폴더의 파일을 순서대로 실행합니다.
-1. `create-database.sql`: `postgres` 계정으로 실행합니다. `siem` 계정과 `siem` DB를 만듭니다.
-2. `schema.sql`: `siem` 계정으로 실행합니다. 명세서의 26개 테이블, 월 파티션, 권한을 만듭니다.
-3. `data.sql`: `siem` 계정으로 실행합니다. 코드와 설정 초기값, 기본 탐지 규칙을 넣습니다.
+1. `db\create-database.sql` 의 `'change-me'` 를 원하는 비밀번호로 바꿉니다.
+2. 아래 세 명령을 순서대로 실행합니다. 첫 번째는 `postgres` 비밀번호, 나머지는 1번에서 정한 `siem` 비밀번호를 입력합니다.
 
 ```powershell
-$env:PGCLIENTENCODING = 'UTF8'; & 'C:\Program Files\PostgreSQL\16\bin\psql.exe' -U siem -h localhost -d siem -v ON_ERROR_STOP=1 -f 'db\schema.sql'
+$env:PGCLIENTENCODING = 'UTF8'; & 'C:\Program Files\PostgreSQL\16\bin\psql.exe' -U postgres -h localhost -f 'db\create-database.sql'
 ```
+```powershell
+& 'C:\Program Files\PostgreSQL\16\bin\psql.exe' -U siem -h localhost -d siem -v ON_ERROR_STOP=1 -f 'db\schema.sql'
+```
+```powershell
+& 'C:\Program Files\PostgreSQL\16\bin\psql.exe' -U siem -h localhost -d siem -v ON_ERROR_STOP=1 -f 'db\data.sql'
+```
+테이블 26개(`\dt`)가 보이면 정상입니다.
 
-### 2. 패키지 설치 (최초 1회)
+### 2. 백엔드 (Flask API · 포트 8080)
+
+**설치 (최초 1회)**
 ```powershell
 python -m venv .venv; .venv\Scripts\pip install -r requirements.txt
 ```
-```powershell
-cd frontend; npm install; npm run build; cd ..
-```
 
-### 3. 실행
-환경변수 `DB_PASSWORD`에 `siem` 계정의 비밀번호를 넣고 실행합니다.
+**실행** — `DB_PASSWORD` 에 `siem` 비밀번호를 넣습니다. 종료는 `Ctrl+C`.
 ```powershell
 $env:DB_PASSWORD = '비밀번호'; .venv\Scripts\python run.py
 ```
-http://localhost:8080 을 엽니다. Flask가 API(`/api/**`)와 React 빌드 결과(`frontend/dist`)를 함께 내보냅니다.
-
-**화면을 고치면서 개발할 때**는 Flask를 켜 둔 채로 React 개발 서버를 따로 띄웁니다. 저장하면 화면이 바로 바뀌고, `/api` 요청은 8080으로 전달됩니다.
-```powershell
-cd frontend; npm run dev
-```
-→ http://localhost:5173
+`경보기 SIEM 실행 중: http://localhost:8080` 이 나오면 정상입니다. API는 `/api/**`, 탐지 엔진은 10초마다 자동 실행됩니다.
 
 | 환경변수 | 기본값 | 설명 |
 |---|---|---|
@@ -69,14 +70,32 @@ cd frontend; npm run dev
 | `DETECTION_ENABLED` | `true` | `false`면 탐지 엔진을 자동 실행하지 않습니다 |
 | `FLASK_DEBUG` | (없음) | `1`이면 Flask 개발 서버로 실행해 코드 수정 시 자동 재시작. 이때는 http://127.0.0.1:8080 으로 접속 |
 
-`run.py`는 WSGI 서버 waitress로 실행합니다. Flask 개발 서버는 IPv4만 받아서, Windows 브라우저로 `localhost`에 접속하면 요청마다 약 0.3초씩 늦어집니다(IPv6 접속 실패 후 재시도). 서버는 **프로세스 1개**로만 띄웁니다(탐지 엔진의 처리 위치가 메모리에 있기 때문).
+- `run.py`는 WSGI 서버 waitress로 실행합니다. Flask 개발 서버는 IPv4만 받아서, Windows 브라우저로 `localhost`에 접속하면 요청마다 약 0.3초씩 늦어집니다.
+- 서버는 **프로세스 1개**로만 띄웁니다(탐지 엔진의 처리 위치가 메모리에 있기 때문).
+
+### 3. 프론트엔드 (React · Vite)
+
+**설치 (최초 1회)**
+```powershell
+cd frontend; npm install; cd ..
+```
+
+화면은 두 가지 방법 중 하나로 엽니다. 어느 쪽이든 **백엔드(8080)가 실행 중**이어야 합니다.
+
+| 방법 | 명령 | 주소 | 언제 |
+|---|---|---|---|
+| **A. 빌드해서 8080으로** | `cd frontend; npm run build; cd ..` | http://localhost:8080 | 화면만 볼 때 · 배포. Flask가 `frontend/dist` 를 함께 내보냄 |
+| **B. 개발 서버** | `cd frontend; npm run dev` | http://localhost:5173 | 화면 코드를 고칠 때. 저장하면 바로 반영, `/api` 는 8080으로 전달 |
+
+- A 방식은 화면 코드를 고친 뒤 **`npm run build` 를 다시** 해야 8080에 반영됩니다.
+- 빌드 없이 8080에 접속하면 "화면 빌드가 없습니다" 안내가 나옵니다.
 
 ### 4. 동작 확인
-`requests.http`에서 실행합니다.
-1. `POST /api/dev/simulate/ssh-bruteforce`
-2. 10초 안에 **위협 탐지 규칙 > 탐지 결과 탭**과 **경보 관리**에 새 항목이 생기는지 확인합니다.
+`requests.http` 의 요청을 실행합니다 (VS Code REST Client 또는 IntelliJ HTTP Client).
+1. `POST /api/dev/simulate/ssh-bruteforce` — 테스트 이벤트 생성
+2. 10초 안에 **위협 탐지 규칙 › 탐지 결과 탭**과 **경보 관리**에 새 항목이 생기는지 확인
 
-시나리오는 `ssh-bruteforce`, `sudo-root`, `offhours-login`, `user-created`, `web-admin-scan`이 있습니다.
+시나리오는 `ssh-bruteforce`, `sudo-root`, `offhours-login`, `user-created`, `web-admin-scan`이 있습니다. 같은 시나리오를 바로 다시 넣으면 규칙의 **중복 억제 시간**(예: SSH 10분) 안이라 새 경보가 생기지 않는 것이 정상입니다.
 
 ## 구조 (기능-테이블 매핑 시트 기준)
 
