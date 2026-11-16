@@ -23,6 +23,3 @@ class Config:
     DETECTION_INTERVAL_SEC = float(os.environ.get("DETECTION_INTERVAL_SEC", "10"))
     DETECTION_BATCH_SIZE = int(os.environ.get("DETECTION_BATCH_SIZE", "1000"))
     DETECTION_STARTUP_LOOKBACK_MIN = int(os.environ.get("DETECTION_STARTUP_LOOKBACK_MIN", "60"))
-
-    # 화면 flash 메시지용. 운영에서는 반드시 환경변수로 지정
-    SECRET_KEY = os.environ.get("SECRET_KEY", "dev-only-secret-key")

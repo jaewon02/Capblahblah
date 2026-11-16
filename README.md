@@ -9,7 +9,8 @@ WBS 5 (기능정의서 No 117–152) 구현. 기준 문서는 다음과 같습�
 
 ```
 run.py              실행 진입점 (python run.py)
-alarm/              Flask 앱 · Python 3.12 · psycopg 3 · PostgreSQL 16
+frontend/           React 18 · Vite 화면 (목업 Rules · Alerts)
+alarm/              Flask API · Python 3.12 · psycopg 3 · PostgreSQL 16
   rules.py          5.1 탐지 규칙 관리
   detect.py         5.2 탐지 엔진 (백그라운드 스레드, 10초 주기)
   threats.py        5.3 탐지 결과
@@ -17,7 +18,6 @@ alarm/              Flask 앱 · Python 3.12 · psycopg 3 · PostgreSQL 16
   events.py         normalized_event · raw_log 조회
   api.py            JSON API (/api/**)
   dev.py            개발용 테스트 API (/api/dev/**)
-  views.py          화면 (Jinja 템플릿 · templates/ · static/)
 db/                 DDL · 초기 데이터
 ```
 
@@ -26,6 +26,7 @@ db/                 DDL · 초기 데이터
 ### 준비물
 - **PostgreSQL 16**
 - **Python 3.12** (3.10 이상)
+- **Node.js 18 이상** (화면 빌드 · 개발 서버)
 
 ### 1. DB 생성 (최초 1회)
 `db` 폴더의 파일을 순서대로 실행합니다.
@@ -41,13 +42,22 @@ $env:PGCLIENTENCODING = 'UTF8'; & 'C:\Program Files\PostgreSQL\16\bin\psql.exe' 
 ```powershell
 python -m venv .venv; .venv\Scripts\pip install -r requirements.txt
 ```
+```powershell
+cd frontend; npm install; npm run build; cd ..
+```
 
 ### 3. 실행
 환경변수 `DB_PASSWORD`에 `siem` 계정의 비밀번호를 넣고 실행합니다.
 ```powershell
 $env:DB_PASSWORD = '비밀번호'; .venv\Scripts\python run.py
 ```
-http://localhost:8080 을 엽니다. 화면과 API(`/api/**`)가 같은 서버에서 동작합니다.
+http://localhost:8080 을 엽니다. Flask가 API(`/api/**`)와 React 빌드 결과(`frontend/dist`)를 함께 내보냅니다.
+
+**화면을 고치면서 개발할 때**는 Flask를 켜 둔 채로 React 개발 서버를 따로 띄웁니다. 저장하면 화면이 바로 바뀌고, `/api` 요청은 8080으로 전달됩니다.
+```powershell
+cd frontend; npm run dev
+```
+→ http://localhost:5173
 
 | 환경변수 | 기본값 | 설명 |
 |---|---|---|
@@ -57,7 +67,6 @@ http://localhost:8080 을 엽니다. 화면과 API(`/api/**`)가 같은 서버�
 | `PORT` · `HOST` | `8080` · (없음) | 서버 포트 · 주소. `HOST`가 없으면 `localhost`(IPv4 · IPv6 둘 다)에서 받습니다 |
 | `DETECTION_INTERVAL_SEC` | `10` | 탐지 엔진 실행 주기(초) |
 | `DETECTION_ENABLED` | `true` | `false`면 탐지 엔진을 자동 실행하지 않습니다 |
-| `SECRET_KEY` | 개발용 값 | 화면 알림 메시지(세션 쿠키) 서명용. 운영에서는 꼭 지정 |
 | `FLASK_DEBUG` | (없음) | `1`이면 Flask 개발 서버로 실행해 코드 수정 시 자동 재시작. 이때는 http://127.0.0.1:8080 으로 접속 |
 
 `run.py`는 WSGI 서버 waitress로 실행합니다. Flask 개발 서버는 IPv4만 받아서, Windows 브라우저로 `localhost`에 접속하면 요청마다 약 0.3초씩 늦어집니다(IPv6 접속 실패 후 재시도). 서버는 **프로세스 1개**로만 띄웁니다(탐지 엔진의 처리 위치가 메모리에 있기 때문).
@@ -81,12 +90,12 @@ http://localhost:8080 을 엽니다. 화면과 API(`/api/**`)가 같은 서버�
 - 탐지 엔진은 10초마다 실행되고, 실행할 때마다 `service_status`의 `DETECTOR` heartbeat를 갱신합니다.
 - ORM 없이 SQL로 직접 다룹니다. 파티션 테이블(`raw_log`, `normalized_event`)이 복합 PK이기 때문입니다.
 - `threat_no`와 `alert_no`는 시퀀스 기반입니다. 형식은 `EVT-yyyyMMdd(KST)-0001`, `ALT-0001`입니다.
-- 화면은 서버에서 그리고(Jinja), 처리 버튼은 폼 전송 후 원래 화면으로 돌아옵니다. API와 같은 업무 함수를 씁니다.
+- 화면은 React가 그리고 모든 데이터는 `/api/**`로 주고받습니다. React 라우터 경로(`/rules`, `/alerts` 등)는 Flask가 `index.html`로 응답합니다.
 
 ### 화면 · API 경로
 | 화면 | API |
 |---|---|
-| `/rules` 규칙 관리, `/rules?tab=results` 탐지 결과 | `/api/rules`, `/api/threats`, `/api/codes/log-types`, `/api/codes/event-types` |
+| `/rules` 규칙 관리 · 탐지 결과 탭 | `/api/rules`, `/api/threats`, `/api/codes/log-types`, `/api/codes/event-types` |
 | `/alerts` 경보 관리 | `/api/alerts`, `/api/alerts/summary`, `/api/alerts/{id}/status`, `/api/alerts/{id}/false-positive` |
 
 ### 탐지 조건 형식 (명세서 예시 형식)

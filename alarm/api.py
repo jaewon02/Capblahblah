@@ -1,5 +1,7 @@
 """JSON API (/api/**). 오류는 {"message": "..."} 형식."""
+import psycopg
 from flask import Blueprint, current_app, jsonify, request
+from psycopg_pool import PoolTimeout
 from werkzeug.exceptions import HTTPException
 
 from . import alerts, db, rules, threats
@@ -170,5 +172,9 @@ def handle_api_error(e):
 def handle_unexpected(e):
     if isinstance(e, HTTPException):
         return jsonify(message=e.description or e.name), e.code
+    if isinstance(e, (PoolTimeout, psycopg.OperationalError)):
+        current_app.logger.error("DB 연결 실패: %s", e)
+        return jsonify(message="데이터베이스에 연결할 수 없습니다. PostgreSQL 실행 여부와 "
+                               "환경변수 DB_PASSWORD(siem 계정 비밀번호)를 확인하십시오."), 503
     current_app.logger.exception("API 처리 중 오류")
     return jsonify(message="서버 오류가 발생했습니다."), 500

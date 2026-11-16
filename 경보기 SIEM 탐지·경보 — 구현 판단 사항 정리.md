@@ -94,7 +94,7 @@ DBMS(PostgreSQL 16)는 명세서 개요에 명시된 값이고, 아래는 문서
 
 | 항목 | 정한 내용 |
 | --- | --- |
-| 기술 스택 | Python 3.12 + Flask 3 (언어 · 프레임워크 선정 결과 1위 python + flask). 화면은 Flask 템플릿(Jinja), DB 드라이버는 psycopg 3 |
+| 기술 스택 | Python 3.12 + Flask 3 (언어 · 프레임워크 선정 결과 1위 python + flask). 화면은 React 18 + Vite(Flask가 빌드 결과를 함께 내보냄), DB 드라이버는 psycopg 3 |
 | 패키지명 | alarm (실행: python run.py, 포트 8080) |
 | DB 접근 방식 | ORM 없이 SQL 직접 작성. 파티션 테이블(복합 PK) · JSONB · INET을 그대로 다루기 위함 |
 | 프로필 | 환경변수 APP_PROFILE = dev(기본, 테스트 API 켜짐) / prod |

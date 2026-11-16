@@ -22,6 +22,11 @@ dist/
 instance/
 flask_session/
 
+# ─────────────── React (frontend/) ───────────────
+# 각자 cd frontend; npm install. 빌드 결과(frontend/dist)는 위 dist/ 규칙으로 제외
+node_modules/
+npm-debug.log*
+
 # ─────────────── 비밀값 · 개인 설정 ───────────────
 # DB 비밀번호 등은 환경변수(DB_PASSWORD · SECRET_KEY)로 넘기고 파일로 올리지 않는다
 .env
