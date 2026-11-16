@@ -19,6 +19,7 @@ alarm/              Flask API · Python 3.12 · psycopg 3 · PostgreSQL 16
   api.py            JSON API (/api/**)
   dev.py            개발용 테스트 API (/api/dev/**)
 db/                 DDL · 초기 데이터
+  dummy/            기능 테스트용 더미 데이터 덤프 · 생성 스크립트 (db/dummy/README.md)
 ```
 
 ## 실행 방법
@@ -89,6 +90,10 @@ cd frontend; npm install; cd ..
 
 - A 방식은 화면 코드를 고친 뒤 **`npm run build` 를 다시** 해야 8080에 반영됩니다.
 - 빌드 없이 8080에 접속하면 "화면 빌드가 없습니다" 안내가 나옵니다.
+
+### 더미 데이터로 시험하기 (선택)
+기능정의서 238개 기능을 시험할 수 있는 14일치 데이터(로그 3,311건 · 위협 19건 · 경보 19건 · 테스트 계정 6개)를 `db/dummy/siem_dummy_20261116.sql` 로 제공합니다.
+빈 `siem` DB에 넣는 방법과 기능별 데이터 · 테스트 계정은 [db/dummy/README.md](db/dummy/README.md) 를 보십시오.
 
 ### 4. 동작 확인
 `requests.http` 의 요청을 실행합니다 (VS Code REST Client 또는 IntelliJ HTTP Client).
